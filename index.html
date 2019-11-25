@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta
+      name="viewport"
+      content="initial-scale=1.0, user-scalable=no, width=device-width"
+    />
+
+    <title>mapa de sondeos</title>
+
+    <!-- Favicons made with https://www.favicon-generator.org/-->
+    <link
+      rel="apple-touch-icon"
+      sizes="57x57"
+      href="./favicon/apple-icon-57x57.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="60x60"
+      href="./favicon/apple-icon-60x60.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="72x72"
+      href="./favicon/apple-icon-72x72.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="76x76"
+      href="./favicon/apple-icon-76x76.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="114x114"
+      href="./favicon/apple-icon-114x114.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="120x120"
+      href="./favicon/apple-icon-120x120.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="144x144"
+      href="./favicon/apple-icon-144x144.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="152x152"
+      href="./favicon/apple-icon-152x152.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="./favicon/apple-icon-180x180.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="./favicon/android-icon-192x192.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="./favicon/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="96x96"
+      href="./favicon/favicon-96x96.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="./favicon/favicon-16x16.png"
+    />
+    <link rel="manifest" href="./favicon/manifest.json" />
+    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta
+      name="msapplication-TileImage"
+      content="./favicon/ms-icon-144x144.png"
+    />
+    <meta name="theme-color" content="#ffffff" />
+
+    <link
+      type="text/css"
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Lato"
+    />
+
+    <link
+      type="text/css"
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/openlayers/4.2.0/ol-debug.css"
+    />
+    <link
+      type="text/css"
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <link
+      type="text/css"
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+    />
+    <link type="text/css" rel="stylesheet" href="css/navbar_transparent.css" />
+    <link type="text/css" rel="stylesheet" href="css/sondeos.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <nav
+        class="navbar navbar-fixed-top navbar-default navbar-transparent"
+        role="navigation"
+      >
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button
+              type="button"
+              class="navbar-toggle"
+              data-toggle="collapse"
+              data-target="#bs-example-navbar-collapse-1"
+            >
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Sondeos</a>
+          </div>
+          <div
+            class="collapse navbar-collapse"
+            id="bs-example-navbar-collapse-1"
+          >
+            <form class="navbar-form navbar-left" role="search">
+              <select
+                id="slct_buscar"
+                class="form-control"
+                data-toggle="tooltip"
+                data-placement="bottom"
+                title="Buscar por..."
+              >
+                <option value="localidad">Localidad</option>
+                <option value="referencia">Referencia Catastral</option>
+              </select>
+              <div class="input-group">
+                <input
+                  id="buscar"
+                  type="text"
+                  class="form-control"
+                  placeholder="Búsqueda"
+                  data-toggle="tooltip"
+                  data-placement="bottom"
+                  title="Introducir localidad o referencia catastral"
+                />
+                <span class="input-group-btn">
+                  <button
+                    id="btn_buscar"
+                    type="button"
+                    class="btn btn-info"
+                    data-toggle="tooltip"
+                    data-placement="bottom"
+                    title="Buscar"
+                  >
+                    <i class="fa fa-search"></i>
+                  </button>
+                </span>
+              </div>
+              <!-- /input-group -->
+              <button
+                id="btn_geoloc"
+                type="button"
+                class="btn btn-default"
+                data-toggle="tooltip"
+                data-placement="bottom"
+                title="Ir a mi posición"
+              >
+                <i class="fa fa-map-marker"></i>
+              </button>
+              <div class="checkbox">
+                <label>
+                  <input id="mostrarCatastro" type="checkbox" /> Mostrar
+                  Catastro
+                </label>
+              </div>
+            </form>
+          </div>
+        </div>
+      </nav>
+    </div>
+
+    <div id="mapa" class="mapas">
+      <p id="logo">
+        &copy; 2019
+        <a href="https://binaptic.com">
+          <img src="img/logotipo_binaptic_h_black_v2_16.svg" height="16px" />
+        </a>
+      </p>
+
+      <div id="poi" style="display:none">
+        <img src="./img/pin_0.svg" />
+      </div>
+      <div id="popoverPoi"></div>
+      <div id="popoverInfo" title="Información"></div>
+
+      <div id="aviso" class="modal fade">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">
+                &times;
+              </button>
+              <h4 class="modal-title">Aviso</h4>
+            </div>
+            <div class="modal-body">
+              <p></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script
+      type="text/javascript"
+      src="https://code.jquery.com/jquery-2.2.4.min.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="http://cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="https://cdnjs.cloudflare.com/ajax/libs/openlayers/4.2.0/ol-debug.js"
+    ></script>
+    <script type="text/javascript" src="js/togeojson.js"></script>
+    <script type="text/javascript" src="js/sondeos.js"></script>
+  </body>
+</html>

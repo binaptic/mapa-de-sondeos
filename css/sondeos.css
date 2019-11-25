@@ -1,0 +1,60 @@
+.navbar-fixed-bottom,
+.navbar-fixed-top {
+  left: 50px;
+}
+
+.popover {
+  z-index: 1029; /* El z-index de la navbar es 1030 */
+}
+
+#popoverPoi {
+  padding-bottom: 48px;
+}
+
+#popoverInfo .popover-content {
+  /*min-width: 134px;*/
+  width: 250px;
+  height: 150px;
+}
+
+body {
+  font-family: Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+html,
+body,
+.mapas {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#logo {
+  position: absolute;
+  margin: 0; /* Preexisten 16px de margen superior e inferior */
+  bottom: 0;
+  left: 0;
+  z-index: 999;
+  font-size: 14px;
+  font-weight: 400;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 0 4px 0 0;
+  padding: 4px; /* Para q tenga la misma altura q Attribution */
+}
+
+/*#logo img {
+    vertical-align: middle;
+}*/
+
+.ol-zoom,
+.ol-full-screen {
+  z-index: 1030; /* El z-index de la navbar es 1030 */
+}
+
+iframe {
+  background-color: transparent;
+  border: 0 none transparent;
+  padding: 0;
+  overflow: hidden;
+}
