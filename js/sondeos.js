@@ -159,7 +159,8 @@ $(document).ready(function() {
     //controls: [],
     overlays: [infoOverlay, poiOverlay, popoverPoiOverlay],
     target: "mapa",
-    view: vista
+    view: vista,
+    interactions: ol.interaction.defaults({ doubleClickZoom: false })
   });
 
   // CONTROLES
@@ -178,7 +179,7 @@ $(document).ready(function() {
       }
     });
 
-  //REVISAR: http://stackoverflow.com/questions/31297721/how-to-get-a-layer-from-a-feature-in-openlayers-3
+  // http://stackoverflow.com/questions/31297721/how-to-get-a-layer-from-a-feature-in-openlayers-3
   /**
    * This is a workaround.
    * Returns the associated layer.
@@ -233,9 +234,7 @@ $(document).ready(function() {
     }
     infoOverlay.setPosition(coord);
     $(containerInfo).css("padding-bottom", "0px");
-    // http://stackoverflow.com/questions/22268374/changing-the-width-of-twitter-bootstrap-popover
     $(containerInfo).attr("data-container", "#popoverInfo");
-    //--------------------------------------------------------------------------------------------
     $(containerInfo).attr("data-placement", "top");
     $(containerInfo).attr("data-html", true);
     $(containerInfo).attr("data-content", cont);
@@ -249,9 +248,7 @@ $(document).ready(function() {
   function mostrarPopoverPoi(coord, cont) {
     $(containerInfo).popover("destroy");
     popoverPoiOverlay.setPosition(coord);
-    // http://stackoverflow.com/questions/22268374/changing-the-width-of-twitter-bootstrap-popover
     $(containerInfo).attr("data-container", "#popoverPoi");
-    //--------------------------------------------------------------------------------------------
     //$(containerInfo).attr('data-trigger', 'focus');// Para q solo se cierre al hacer clic fuera del popover
     $(containerPopoverPoi).attr("data-placement", "top");
     $(containerPopoverPoi).attr("data-html", true);
@@ -264,9 +261,7 @@ $(document).ready(function() {
     $(containerPopoverPoi).popover("destroy");
     infoOverlay.setPosition(coord);
     $(containerInfo).css("padding-bottom", "48px");
-    // http://stackoverflow.com/questions/22268374/changing-the-width-of-twitter-bootstrap-popover
     $(containerInfo).attr("data-container", "#popoverInfo");
-    //--------------------------------------------------------------------------------------------
     $(containerInfo).attr("data-placement", "top");
     $(containerInfo).attr("data-html", true);
     $(containerInfo).attr("data-content", cont);
@@ -280,99 +275,90 @@ $(document).ready(function() {
 
   var nSondeo, urlMapama;
   mapa.on("singleclick", function(e) {
-    //alert("mapa.on('singleclick', function (e) { ...");
-
     var cluster = mapa.forEachFeatureAtPixel(e.pixel, function(feature) {
       return feature;
     });
 
-    //TODO: VER SI PERTENECE A SONDEOS O A REFERENCIAS
+    consultaCatastro = function(cluster) {
+      var geometria = cluster.getGeometry();
+      var coordenadas = geometria.getCoordinates();
+      var resolucion = vista.getResolution();
+      var dimensiones = mapa.getSize();
+      var extension = mapa.getView().calculateExtent(dimensiones);
+      var urlCapa = catastro.getSource().getUrls()[0];
+      var versionCapa = catastro.getSource().getParams()[
+        Object.keys(catastro.getSource().getParams())[0]
+      ];
+      var nombreCapa = catastro.getSource().getParams()[
+        Object.keys(catastro.getSource().getParams())[1]
+      ];
+      // console.info("Nombre de la capa que se pide al servidor: ", nombreCapa);
+      var proyeccionCapa = catastro.getSource().getProjection();
+      var epsgCapa = catastro
+        .getSource()
+        .getProjection()
+        .getCode();
+      var tileGrid = catastro.getSource().getTileGrid();
+      if (!tileGrid) {
+        tileGrid = catastro
+          .getSource()
+          .getTileGridForProjection(proyeccionCapa);
+      }
+      var tileCoord = tileGrid.getTileCoordForCoordAndResolution(
+        coordenadas,
+        resolucion
+      );
+      if (tileGrid.getResolutions().length <= tileCoord[0]) {
+        return undefined;
+      }
+      var tileResolution = tileGrid.getResolution(tileCoord[0]);
+      var tileExtent = tileGrid.getTileCoordExtent(tileCoord, extension);
+      var x = Math.floor((coordenadas[0] - tileExtent[0]) / tileResolution);
+      var y = Math.floor((tileExtent[3] - coordenadas[1]) / tileResolution);
+      var bboxCapa = tileExtent;
+
+      var urlAjax =
+        proxy +
+        urlCapa +
+        "?SERVICE=WMS" +
+        "&VERSION=" +
+        versionCapa +
+        "&REQUEST=GetFeatureInfo" +
+        "&FORMAT=" +
+        encodeURIComponent("image/png") +
+        "&TRANSPARENT=true" +
+        "&QUERY_LAYERS=" +
+        nombreCapa +
+        "&LAYERS=" +
+        nombreCapa +
+        "&INFO_FORMAT=" +
+        encodeURIComponent("text/html") +
+        "&I=" +
+        x +
+        "&J=" +
+        y +
+        "&WIDTH=256" +
+        "&HEIGHT=256" +
+        //"&CRS=" + encodeURIComponent(epsgCapa) +// v 1.3.0
+        "&SRS=" +
+        encodeURIComponent(epsgCapa) +
+        "&BBOX=" +
+        encodeURIComponent(bboxCapa);
+      // console.log(urlAjax);
+      return urlAjax;
+    };
+
     if (cluster) {
       var geometria = cluster.getGeometry();
       var coordenadas = geometria.getCoordinates();
-
-      var capa = cluster.getLayer(mapa);
-      // console.info(capa);
-      // console.info(capa.get("name"));
-
       if (cluster.getProperties().features.length == 1) {
-        // Para sondeos
-        // var geometria = feature.getGeometry();
-        // var coordenadas = geometria.getCoordinates();
-        var resolucion = vista.getResolution();
-        var dimensiones = mapa.getSize();
-        var extension = mapa.getView().calculateExtent(dimensiones);
-
         nSondeo = cluster.getProperties().features[0].get("N_SONDEO");
         urlMapama =
           "https://sig.mapama.gob.es/93/ClienteWS/intranet/Default.aspx?nombre=SONDEOS&claves=N_SONDEO&valores=" +
           nSondeo +
           "";
-
-        var urlCapa = catastro.getSource().getUrls()[0];
-        var versionCapa = catastro.getSource().getParams()[
-          Object.keys(catastro.getSource().getParams())[0]
-        ];
-        var nombreCapa = catastro.getSource().getParams()[
-          Object.keys(catastro.getSource().getParams())[1]
-        ];
-        // console.info("Nombre de la capa que se pide al servidor: ", nombreCapa); // Imprescindible
-        var proyeccionCapa = catastro.getSource().getProjection();
-        var epsgCapa = catastro
-          .getSource()
-          .getProjection()
-          .getCode();
-        var tileGrid = catastro.getSource().getTileGrid();
-        if (!tileGrid) {
-          tileGrid = catastro
-            .getSource()
-            .getTileGridForProjection(proyeccionCapa);
-        }
-        var tileCoord = tileGrid.getTileCoordForCoordAndResolution(
-          coordenadas,
-          resolucion
-        );
-        if (tileGrid.getResolutions().length <= tileCoord[0]) {
-          return undefined;
-        }
-        var tileResolution = tileGrid.getResolution(tileCoord[0]);
-        var tileExtent = tileGrid.getTileCoordExtent(tileCoord, extension);
-        var x = Math.floor((coordenadas[0] - tileExtent[0]) / tileResolution);
-        var y = Math.floor((tileExtent[3] - coordenadas[1]) / tileResolution);
-        var bboxCapa = tileExtent;
-
-        var urlAjax =
-          proxy +
-          urlCapa +
-          "?SERVICE=WMS" +
-          "&VERSION=" +
-          versionCapa +
-          "&REQUEST=GetFeatureInfo" +
-          "&FORMAT=" +
-          encodeURIComponent("image/png") +
-          "&TRANSPARENT=true" +
-          "&QUERY_LAYERS=" +
-          nombreCapa +
-          "&LAYERS=" +
-          nombreCapa +
-          "&INFO_FORMAT=" +
-          encodeURIComponent("text/html") +
-          "&I=" +
-          x +
-          "&J=" +
-          y +
-          "&WIDTH=256" +
-          "&HEIGHT=256" +
-          //"&CRS=" + encodeURIComponent(epsgCapa) +// v 1.3.0
-          "&SRS=" +
-          encodeURIComponent(epsgCapa) +
-          "&BBOX=" +
-          encodeURIComponent(bboxCapa);
-
-        // console.log(urlAjax);
-
         $.ajax({
-          url: urlAjax
+          url: consultaCatastro(cluster)
         }).done(function(respuesta) {
           // console.log(respuesta);
           var contenido =
@@ -401,6 +387,8 @@ $(document).ready(function() {
         }
         mapa.getView().fit(clusterExtent, mapa.getSize());
       }
+    } else {
+      console.log("TODO: Ref. catastral de este punto");
     }
   });
 
